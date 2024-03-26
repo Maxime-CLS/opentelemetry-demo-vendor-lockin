@@ -1,0 +1,47 @@
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: 1
+
+datasources:
+  - name: Loki
+    type: loki
+    uid: loki
+    url: http://loki:3100
+    jsonData:
+      derivedFields:
+        - name: 'trace_id'
+          matcherRegex: '"traceid":"(\w+)"'
+          url: '$${__value.raw}'
+          datasourceUid: 'tempo'
+
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    url: http://tempo:3200
+    jsonData:
+      nodeGraph:
+        enabled: true
+      serviceMap:
+        datasourceUid: 'mimir'
+      tracesToLogs:
+        datasourceUid: 'loki'
+        mappedTags: [{ key: 'service.name', value: 'job' }]
+        mapTagNamesEnabled: true
+        filterByTraceID: true
+      search:
+        hide: false
+      lokiSearch:
+        datasourceUid: 'loki'
+
+  - name: Mimir
+    type: prometheus
+    access: proxy
+    uid: mimir
+    url: http://mimir:9009/prometheus
+    jsonData:
+      exemplarTraceIdDestinations:
+        - datasourceUid: 'tempo'
+          name: trace_id
+      httpMethod: POST
+      timeInterval: "2s"

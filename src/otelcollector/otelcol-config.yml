@@ -32,12 +32,40 @@ exporters:
         insecure: true
 
 processors:
+  # The batch processor accepts spans, metrics, or logs and places them into batches. 
+  ## Batching helps better compress the data and reduce the number of outgoing connections required to transmit the data.
   batch:
+    send_batch_max_size: 1000
+    timeout: 30s
+    send_batch_size : 800
+  # The memory limiter processor is used to prevent out of memory situations on the collector. 
+  ## Given that the amount and type of data the collector processes is environment-specific and resource utilization of the collector is also dependent on the configured processors
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 70
+    spike_limit_percentage: 30
+  
+  cumulativetodelta:
+  # https://www.dynatrace.com/news/blog/opentelemetry-demo-application-with-dynatrace/
+  filter/histograms: 
+    error_mode: ignore 
+    metrics: 
+      metric: 
+          - 'type == METRIC_DATA_TYPE_HISTOGRAM' 
+          - 'IsMatch(name, "kafka.consumer.*")'
+
+# Extensions provide capabilities on top of the primary functionality of the collector.
+## Health Check extension that responds to health check requests or PProf extension that allows fetching Collector's performance profile.
+extensions:
+  health_check:
+  pprof:
+  zpages:
 
 connectors:
   spanmetrics:
 
 service:
+  extensions: [health_check, pprof, zpages]
   pipelines:
     traces:
       receivers: [otlp]
@@ -51,3 +79,11 @@ service:
       receivers: [otlp]
       processors: [batch]
       exporters: [opensearch, debug]
+  telemetry:
+    logs:
+      level: debug
+      initial_fields:
+        service: my-instance
+    metrics:
+      level: detailed
+      address: 0.0.0.0:8888
