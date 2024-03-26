@@ -43,10 +43,10 @@ service:
       receivers: [otlp]
       processors: [batch]
       exporters: [otlp, debug, spanmetrics]
-    metrics:
-      receivers: [httpcheck/frontendproxy, otlp, spanmetrics]
-      processors: [batch]
-      exporters: [otlphttp/prometheus, debug]
+#    metrics:
+#      receivers: [httpcheck/frontendproxy, otlp, spanmetrics]
+#      processors: [batch]
+#      exporters: [otlphttp/prometheus, debug]
     logs:
       receivers: [otlp]
       processors: [batch]

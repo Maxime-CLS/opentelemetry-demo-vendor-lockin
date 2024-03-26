@@ -1,0 +1,41 @@
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
+
+# extra settings to be merged into OpenTelemetry Collector configuration
+# do not delete this file
+exporters:
+  logging:
+    loglevel: debug
+  otlp/elastic:
+    # Elastic APM server https endpoint without the "https://" prefix
+    endpoint: "apm-server:8200"
+    tls:
+      insecure: true
+    timeout: 10s
+    sending_queue:
+      enabled: true
+      num_consumers: 20
+      queue_size: 1000
+    retry_on_failure:
+      enabled: true
+      initial_interval: 10s
+      randomization_factor: 0.7
+      multiplier: 1.3
+      max_interval: 60s
+      max_elapsed_time: 10m
+    compression: gzip
+
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/elastic]
+    metrics:
+      receivers: [otlp]
+      exporters: [otlp/elastic]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/elastic]

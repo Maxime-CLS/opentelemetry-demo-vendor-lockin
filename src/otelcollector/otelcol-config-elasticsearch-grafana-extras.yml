@@ -1,0 +1,59 @@
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
+
+# extra settings to be merged into OpenTelemetry Collector configuration
+# do not delete this file
+exporters:
+  logging:
+    loglevel: debug
+  otlp/elastic:
+    # Elastic APM server https endpoint without the "https://" prefix
+    endpoint: "apm-server:8200"
+    tls:
+      insecure: true
+    timeout: 10s
+    sending_queue:
+      enabled: true
+      num_consumers: 20
+      queue_size: 1000
+    retry_on_failure:
+      enabled: true
+      initial_interval: 10s
+      randomization_factor: 0.7
+      multiplier: 1.3
+      max_interval: 60s
+      max_elapsed_time: 10m
+    compression: gzip
+  # Exporter for sending trace data to Tempo.
+  otlp/grafana:
+    # Send to the locally running Tempo service.
+    endpoint: tempo:4317
+    # TLS is not enabled for the instance.
+    tls:
+      insecure: true
+  # Exporter for sending Prometheus data to Mimir.
+  otlphttp/mimir:
+    # Send to the locally running Mimir service.
+    endpoint: http://mimir:9009/otlp
+    # TLS is not enabled for the instance.
+    tls:
+      insecure: true
+    timeout: 10s
+  loki:
+    endpoint: "http://loki:3100/loki/api/v1/push"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/elastic, otlp/grafana]
+    metrics:
+      receivers: [otlp]
+      exporters: [otlp/elastic, otlphttp/mimir]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/elastic, loki]
