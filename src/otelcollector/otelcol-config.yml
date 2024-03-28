@@ -33,11 +33,26 @@ exporters:
 
 processors:
   batch:
+  memory_limiter:
+    check_interval: 5s
+    limit_mib: 4000
+    spike_limit_mib: 500
+
+# Extensions provide capabilities on top of the primary functionality of the collector.
+## Health Check extension that responds to health check requests or PProf extension that allows fetching Collector's performance profile.
+extensions:
+  health_check:
+  pprof:
+  zpages:
+  memory_ballast:
+    size_mib: 512
+
 
 connectors:
   spanmetrics:
 
 service:
+  extensions: [health_check, pprof, zpages]
   pipelines:
     traces:
       receivers: [otlp]
@@ -51,3 +66,11 @@ service:
       receivers: [otlp]
       processors: [batch]
       exporters: [opensearch, debug]
+  telemetry:
+    logs:
+      level: debug
+      initial_fields:
+        service: my-instance
+    metrics:
+      level: detailed
+      address: 0.0.0.0:8888

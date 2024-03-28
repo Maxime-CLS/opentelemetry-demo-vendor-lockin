@@ -26,6 +26,14 @@ exporters:
     compression: gzip
 
 
+## https://www.elastic.co/guide/en/observability/8.12/open-telemetry-resource-attributes.html#open-telemetry-resource-attributes
+processors:
+  resource:
+    attributes:
+      - key: deployment.environment
+        action: insert
+        value: demo
+
 service:
   pipelines:
     traces:

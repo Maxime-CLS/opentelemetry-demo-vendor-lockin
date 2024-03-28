@@ -25,7 +25,7 @@ exporters:
       max_elapsed_time: 10m
     compression: gzip
   # Exporter for sending trace data to Tempo.
-  otlp/grafana:
+  otlp/tempo:
     # Send to the locally running Tempo service.
     endpoint: tempo:4317
     # TLS is not enabled for the instance.
@@ -44,14 +44,22 @@ exporters:
     tls:
       insecure: true
 
+## https://www.elastic.co/guide/en/observability/8.12/open-telemetry-resource-attributes.html#open-telemetry-resource-attributes
+processors:
+  resource:
+    attributes:
+      - key: deployment.environment
+        action: insert
+        value: demo
+
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp/elastic, otlp/grafana]
+      processors: [batch, resource]
+      exporters: [otlp/elastic, otlp/tempo, spanmetrics]
     metrics:
-      receivers: [otlp]
+      receivers: [otlp, spanmetrics]
       exporters: [otlp/elastic, otlphttp/mimir]
     logs:
       receivers: [otlp]
