@@ -115,7 +115,7 @@ service:
       exporters: [spanmetrics, otlp/elastic]
     metrics:
       receivers: [otlp, spanmetrics]
-      processors: [memory_limiter, cumulativetodelta, batch]
+      processors: [filter/histograms,, memory_limiter, cumulativetodelta, batch]
       exporters: [otlp/elastic]
     logs:
       receivers: [otlp]
@@ -210,13 +210,15 @@ docker restart otel-col
 #### Kibana APM Access
 [Kibana APM Dashboard](https://localhost:5601/app/apm/services?comparisonEnabled=true&environment=ENVIRONMENT_ALL&rangeFrom=now-15m&rangeTo=now&offset=1d)
 
+### Using feature flags: Simulating application failures use case
 
+One interesting use case in the OpenTelemetry demo application is simulating application failures. This failure logic is built into the application and it can be enabled by using a feature flag service.  
 
-### Down demo platform
+To open the [feature flag UI](http://localhost:8080/feature)
 
-```
-docker compose -f docker-compose-elastic.yml down 
-```
+You should see a feature flag called productCatalogFailure. To enable this feature flag, click edit, enable, then save.  
+
+Go to the Services page and select checkoutservice. After a minute, you should start seeing some of the checkout service requests failing.  
 
 ## Elastic Stack & Grafana Labs
 
@@ -281,6 +283,10 @@ processors:
       - key: deployment.environment
         action: insert
         value: demo
+      # https://grafana.com/docs/loki/next/send-data/otel/#format-considerations
+      - action: insert
+        key: loki.resource.labels
+        value: service.name
 
 service:
   pipelines:
@@ -290,11 +296,11 @@ service:
       exporters: [spanmetrics, otlp/elastic, otlp/tempo]
     metrics:
       receivers: [otlp, spanmetrics]
-      processors: [memory_limiter, cumulativetodelta, batch]
+      processors: [filter/histograms, memory_limiter, cumulativetodelta, batch]
       exporters: [otlp/elastic, otlphttp/mimir]
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter, batch, resource]
       exporters: [otlp/elastic, loki]
 ```
 
@@ -307,6 +313,9 @@ docker restart otel-col
 #### Kibana & Grafana Access
 * [Kibana Dashboard](https://localhost:5601)
 * [Grafana Dashboard](http://localhost:8080/grafana/)
+
+Sources : 
+* [GitHub : docker-otel-lgtm](https://github.com/grafana/docker-otel-lgtm/blob/main/docker/grafana-datasources.yaml)
 
 ## Elastic Stack & Grafana Labs & Dynatrace
 
@@ -386,6 +395,10 @@ processors:
       - key: deployment.environment
         action: insert
         value: demo
+      # https://grafana.com/docs/loki/next/send-data/otel/#format-considerations
+      - action: insert
+        key: loki.resource.labels
+        value: service.name
 
 service:
   pipelines:
@@ -395,11 +408,11 @@ service:
       exporters: [spanmetrics, otlp/elastic, otlp/tempo, otlphttp/dynatrace]
     metrics:
       receivers: [otlp, spanmetrics]
-      processors: [memory_limiter, cumulativetodelta, batch]
+      processors: [filter/histograms, memory_limiter, cumulativetodelta, batch]
       exporters: [otlp/elastic, otlphttp/mimir, otlphttp/dynatrace]
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter, batch, resource]
       exporters: [otlp/elastic, loki, otlphttp/dynatrace]
 ```
 
@@ -438,3 +451,4 @@ One of the latest additions in the demo app is logs. To access logs in Dynatrace
 
 Sources : 
 * [Running the OpenTelemetry demo application with Dynatrace](https://www.dynatrace.com/news/blog/opentelemetry-demo-application-with-dynatrace/)
+* [Opentelemetry Metrics a Guide To Delta VS Cumulative](https://grafana.com/blog/2023/09/26/opentelemetry-metrics-a-guide-to-delta-vs.-cumulative-temporality-trade-offs/)

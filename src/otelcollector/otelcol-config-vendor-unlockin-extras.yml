@@ -59,6 +59,10 @@ processors:
       - key: deployment.environment
         action: insert
         value: demo
+      # https://grafana.com/docs/loki/next/send-data/otel/#format-considerations
+      - action: insert
+        key: loki.resource.labels
+        value: service.name
 
 service:
   pipelines:
@@ -68,10 +72,10 @@ service:
       exporters: [spanmetrics, otlp/elastic, otlp/tempo, otlphttp/dynatrace]
     metrics:
       receivers: [otlp, spanmetrics]
-      processors: [memory_limiter, cumulativetodelta, batch]
+      processors: [filter/histograms, memory_limiter, cumulativetodelta, batch]
       exporters: [otlp/elastic, otlphttp/mimir, otlphttp/dynatrace]
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter, batch, resource]
       exporters: [otlp/elastic, loki, otlphttp/dynatrace]
       

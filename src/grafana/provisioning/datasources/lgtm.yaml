@@ -26,7 +26,7 @@ datasources:
         datasourceUid: 'mimir'
       tracesToLogs:
         datasourceUid: 'loki'
-        mappedTags: [{ key: 'service.name', value: 'job' }]
+        mappedTags: [{ key: 'service.name', value: 'service_name' }]
         mapTagNamesEnabled: true
         filterByTraceID: true
       search:
