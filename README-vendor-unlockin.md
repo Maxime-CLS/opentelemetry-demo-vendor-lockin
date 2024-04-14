@@ -41,6 +41,7 @@ exporters:
 
 
 service:
+  extensions: [health_check, pprof, zpages]
   pipelines:
     traces:
       receivers: [otlp]
@@ -81,7 +82,7 @@ exporters:
     endpoint: "fleet-server:8200"
     headers:
       # Elastic APM Server secret token
-      Authorization: "Bearer supersecrettoken"
+      Authorization: "Bearer ${ELASTIC_APM_SECRET_TOKEN}"
     tls:
       insecure: true
     timeout: 10s
@@ -106,8 +107,11 @@ processors:
         action: insert
         value: demo
 
+connectors:
+  spanmetrics:
 
 service:
+  extensions: [health_check, pprof, zpages]
   pipelines:
     traces:
       receivers: [otlp]
@@ -115,7 +119,7 @@ service:
       exporters: [spanmetrics, otlp/elastic]
     metrics:
       receivers: [otlp, spanmetrics]
-      processors: [filter/histograms,, memory_limiter, cumulativetodelta, batch]
+      processors: [filter/histograms, memory_limiter, cumulativetodelta, batch]
       exporters: [otlp/elastic]
     logs:
       receivers: [otlp]
@@ -288,7 +292,11 @@ processors:
         key: loki.resource.labels
         value: service.name
 
+connectors:
+  spanmetrics:
+
 service:
+  extensions: [health_check, pprof, zpages]
   pipelines:
     traces:
       receivers: [otlp]
@@ -347,7 +355,7 @@ exporters:
     endpoint: "fleet-server:8200"
     headers:
       # Elastic APM Server secret token
-      Authorization: "Bearer supersecrettoken"
+      Authorization: "Bearer ${ELASTIC_APM_SECRET_TOKEN}"
     tls:
       insecure: true
     timeout: 10s
@@ -384,9 +392,9 @@ exporters:
       insecure: true
   # otlp/http exporter to Dynatrace. 
   otlphttp/dynatrace: 
-   endpoint: "https://isi13930.live.dynatrace.com/api/v2/otlp" 
+   endpoint: "${DT_OTLP_ENDPOINT}" 
    headers: 
-    Authorization: "Api-Token dt0c01.SSG2WEQB5TEQC4EOUZEY5EO7.BA2JPPHOGAD43GGGQPYMJGEZP6EQ55XFANHALUCWOANOL4NYALEUY6OAA6KTFQYK" 
+    Authorization: "Api-Token ${DT_API_TOKEN}" 
 
 ## https://www.elastic.co/guide/en/observability/8.12/open-telemetry-resource-attributes.html#open-telemetry-resource-attributes
 processors:
@@ -400,7 +408,11 @@ processors:
         key: loki.resource.labels
         value: service.name
 
+connectors:
+  spanmetrics:
+
 service:
+  extensions: [health_check, pprof, zpages]
   pipelines:
     traces:
       receivers: [otlp]

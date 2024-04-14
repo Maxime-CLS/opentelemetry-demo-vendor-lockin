@@ -64,7 +64,11 @@ processors:
         key: loki.resource.labels
         value: service.name
 
+connectors:
+  spanmetrics:
+
 service:
+  extensions: [health_check, pprof, zpages]
   pipelines:
     traces:
       receivers: [otlp]
@@ -78,4 +82,3 @@ service:
       receivers: [otlp]
       processors: [memory_limiter, batch, resource]
       exporters: [otlp/elastic, loki, otlphttp/dynatrace]
-      

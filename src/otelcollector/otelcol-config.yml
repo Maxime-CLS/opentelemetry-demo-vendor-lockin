@@ -61,24 +61,24 @@ extensions:
   pprof:
   zpages:
 
-connectors:
-  spanmetrics:
+#connectors:
+#  spanmetrics:
 
 service:
-  extensions: [health_check, pprof, zpages]
+#  extensions: [health_check, pprof, zpages]
   pipelines:
-    traces:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp, debug, spanmetrics]
-    metrics:
-      receivers: [httpcheck/frontendproxy, otlp, spanmetrics]
-      processors: [batch]
-      exporters: [otlphttp/prometheus, debug]
-    logs:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [opensearch, debug]
+#    traces:
+#      receivers: [otlp]
+#      processors: [batch]
+#      exporters: [otlp, debug, spanmetrics]
+#    metrics:
+#      receivers: [httpcheck/frontendproxy, otlp, spanmetrics]
+#      processors: [batch]
+#      exporters: [otlphttp/prometheus, debug]
+#    logs:
+#      receivers: [otlp]
+#      processors: [batch]
+#      exporters: [opensearch, debug]
   telemetry:
     logs:
       level: debug
